@@ -213,7 +213,7 @@ assert_eq!(gen.resume(), GeneratorState::Yielded(20));
 assert_eq!(gen.resume(), GeneratorState::Complete(()));
 ```
 
-## Using the low-level API with an async <del>closure</del> faux·sure (for stable Rust)
+## Using the low-level API with an async <del>closure</del> faux-sure (for stable Rust)
 
 ```
 # use genawaiter::{stack::let_gen_using, GeneratorState};
@@ -313,6 +313,7 @@ pub use genawaiter_macro::stack_let_gen as let_gen;
 /// # Examples
 ///
 /// [_See the module-level docs for examples._](.)
+#[cfg(feature = "macro")]
 pub use genawaiter_macro::stack_let_gen_using as let_gen_using;
 
 /// Turns a function into a producer, which can then be used to create a

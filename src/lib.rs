@@ -13,20 +13,20 @@ with this crate, you can use them on stable Rust!
 
 This crate has these features:
 
-- `futures03` (disabled by default) – Implements `Stream` for all generator types.
+- `futures03` (disabled by default) -- Implements `Stream` for all generator types.
   Adds a dependency on `futures-core`.
-- `proc_macro` (enabled by default) – Adds support for macros, and adds various
+- `proc_macro` (enabled by default) -- Adds support for macros, and adds various
   compile-time dependencies.
 
 # Choose your guarantees
 
 This crate supplies three concrete implementations of generators:
 
-1. [`genawaiter::stack`](stack) – Allocation-free. You should prefer this when possible.
+1. [`genawaiter::stack`](stack) -- Allocation-free. You should prefer this when possible.
 
-2. [`genawaiter::rc`](rc) – This allocates.
+2. [`genawaiter::rc`](rc) -- This allocates.
 
-3. [`genawaiter::sync`](sync) – This allocates, and can be shared between threads.
+3. [`genawaiter::sync`](sync) -- This allocates, and can be shared between threads.
 
    [unus]: https://github.com/whatisaphone/genawaiter/blob/4a2b185/src/waker.rs#L9
    [duo]: https://github.com/whatisaphone/genawaiter/blob/4a2b185/src/rc/engine.rs#L26
@@ -108,9 +108,9 @@ let count_to_ten = Gen::new(|mut co| async move {
 
 A generator can control the flow of up to three types of data:
 
-- **Yield** – Each time a generator suspends execution, it can produce a value.
-- **Resume** – Each time a generator is resumed, a value can be passed in.
-- **Completion** – When a generator completes, it can produce one final value.
+- **Yield** -- Each time a generator suspends execution, it can produce a value.
+- **Resume** -- Each time a generator is resumed, a value can be passed in.
+- **Completion** -- When a generator completes, it can produce one final value.
 
 ## Yield
 
@@ -327,8 +327,11 @@ mod ext;
 #[macro_use]
 mod macros;
 mod ops;
+#[cfg(feature = "alloc")]
 pub mod rc;
+#[cfg(feature = "stack")]
 pub mod stack;
+#[cfg(all(feature = "alloc", feature = "sync"))]
 pub mod sync;
 #[cfg(test)]
 mod testing;

@@ -244,7 +244,7 @@ assert_eq!(gen.resume(), GeneratorState::Yielded(20));
 assert_eq!(gen.resume(), GeneratorState::Complete(()));
 ```
 
-## Using the low-level API with an async <del>closure</del> faux·sure (for stable Rust)
+## Using the low-level API with an async <del>closure</del> faux-sure (for stable Rust)
 
 ```
 # use genawaiter::{rc::Gen, GeneratorState};
@@ -280,7 +280,7 @@ assert_eq!(gen.resume(), GeneratorState::Yielded(30));
 ```
 */
 
-pub use crate::rc::{engine::Co, generator::Gen};
+pub use crate::rc::{boxed::GenBoxed, engine::Co, generator::Gen};
 
 /// Creates a generator.
 ///
@@ -304,6 +304,7 @@ pub use genawaiter_macro::rc_gen as gen;
 #[cfg(feature = "proc_macro")]
 pub use genawaiter_proc_macro::rc_producer_fn as producer_fn;
 
+mod boxed;
 mod engine;
 mod generator;
 mod iterator;

@@ -48,7 +48,7 @@ let mut my_generator = Gen::new(my_producer);
 # Storing a generator in a `static`
 
 In Rust, the type of static variables must be nameable, but the type of an `async fn` is
-not nameable – `async fn`s always return `impl Future`. So, in order to store a
+not nameable -- `async fn`s always return `impl Future`. So, in order to store a
 generator in a static, you'll need `dyn Future`, plus a layer of indirection. This crate
 provides the [`GenBoxed`](type.GenBoxed.html) type alias with the
 [`Gen::new_boxed`](type.GenBoxed.html#method.new_boxed) function to make this easier
@@ -276,7 +276,7 @@ assert_eq!(gen.resume(), GeneratorState::Yielded(20));
 assert_eq!(gen.resume(), GeneratorState::Complete(()));
 ```
 
-## Using the low-level API with an async <del>closure</del> faux·sure (for stable Rust)
+## Using the low-level API with an async <del>closure</del> faux-sure (for stable Rust)
 
 ```
 # use genawaiter::{sync::Gen, GeneratorState};
