@@ -342,16 +342,20 @@ mod nightly_tests;
 #[cfg(test)]
 mod tests {
     use crate::{
-        stack::{let_gen_using, Co},
+        stack::Co,
         testing::DummyFuture,
         GeneratorState,
     };
-    use std::{
+    #[cfg(feature = "macro")]
+    use crate::stack::let_gen_using;
+    use core::{
         cell::RefCell,
-        sync::{
-            atomic::{AtomicBool, Ordering},
-            Arc,
-        },
+        sync::atomic::{AtomicBool, Ordering},
+    };
+    #[cfg(feature = "alloc")]
+    use alloc::{
+        sync::Arc,
+        vec::Vec,
     };
 
     async fn simple_producer(mut co: Co<'_, i32>) -> &'static str {
@@ -359,6 +363,7 @@ mod tests {
         "done"
     }
 
+    #[cfg(feature = "macro")]
     #[test]
     fn function() {
         let_gen_using!(gen, simple_producer);
@@ -366,6 +371,7 @@ mod tests {
         assert_eq!(gen.resume(), GeneratorState::Complete("done"));
     }
 
+    #[cfg(feature = "macro")]
     #[test]
     fn simple_closure() {
         async fn gen(i: i32, mut co: Co<'_, i32>) -> &'static str {
@@ -378,6 +384,7 @@ mod tests {
         assert_eq!(gen.resume(), GeneratorState::Complete("done"));
     }
 
+    #[cfg(all(feature = "macro", feature = "alloc"))]
     #[test]
     fn resume_args() {
         async fn gen(resumes: &RefCell<Vec<&str>>, mut co: Co<'_, i32, &'static str>) {
@@ -401,6 +408,7 @@ mod tests {
         assert_eq!(*resumes.borrow(), &["abc", "def"]);
     }
 
+    #[cfg(feature = "macro")]
     #[test]
     #[should_panic(expected = "non-async method")]
     fn forbidden_await_helpful_message() {
@@ -412,6 +420,7 @@ mod tests {
         gen.resume();
     }
 
+    #[cfg(feature = "macro")]
     #[test]
     #[should_panic(expected = "Co::yield_")]
     fn multiple_yield_helpful_message() {
@@ -424,6 +433,7 @@ mod tests {
         gen.resume();
     }
 
+    #[cfg(feature = "macro")]
     #[test]
     #[should_panic = "should have been dropped by now"]
     fn escaped_co_helpful_message() {
@@ -440,6 +450,7 @@ mod tests {
     }
 
     /// Test the unsafe `Gen::drop` implementation.
+    #[cfg(all(feature = "macro", feature = "alloc"))]
     #[test]
     fn test_gen_drop() {
         struct SetFlagOnDrop(Arc<AtomicBool>);

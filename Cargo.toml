@@ -32,10 +32,11 @@ include = ["Cargo.toml", "README-crates-io.md", "src/**/*.rs"]
 #trybuild = "1"
 
 [features]
-default = ["stack", "alloc", "sync"]
+default = ["std", "stack", "alloc", "sync"]
+std = ["alloc"]
 stack = []
 alloc = []
-sync = []
+sync = ["std"]
 #futures03 = ["futures-core"]
 futures03 = []
 nightly = []

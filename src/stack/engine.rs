@@ -1,5 +1,5 @@
-use crate::{core, core::Next};
-use std::{cell::UnsafeCell, ptr};
+use crate::{engine, engine::Next};
+use core::{cell::UnsafeCell, ptr};
 
 /// This type holds the value that is pending being returned from the generator.
 ///
@@ -16,7 +16,7 @@ impl<Y, R> Default for Airlock<Y, R> {
     }
 }
 
-impl<'s, Y, R> core::Airlock for &'s Airlock<Y, R> {
+impl<'s, Y, R> engine::Airlock for &'s Airlock<Y, R> {
     type Yield = Y;
     type Resume = R;
 
@@ -42,4 +42,4 @@ impl<'s, Y, R> core::Airlock for &'s Airlock<Y, R> {
 /// theoretical you are feeling.
 ///
 /// [_See the module-level docs for examples._](.)
-pub type Co<'y, Y, R = ()> = core::Co<&'y Airlock<Y, R>>;
+pub type Co<'y, Y, R = ()> = engine::Co<&'y Airlock<Y, R>>;

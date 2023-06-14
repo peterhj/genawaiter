@@ -1,10 +1,9 @@
-use std::{future::Future, mem::MaybeUninit, pin::Pin, ptr};
-
 use crate::{
-    core::{advance, async_advance, Airlock as _, Next},
+    engine::{advance, async_advance, Airlock as _, Next},
     ops::{Coroutine, GeneratorState},
     stack::engine::{Airlock, Co},
 };
+use core::{future::Future, mem::MaybeUninit, pin::Pin, ptr};
 
 /// This data structure holds the transient state of an executing generator.
 ///

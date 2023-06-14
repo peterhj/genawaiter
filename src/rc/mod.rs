@@ -322,10 +322,11 @@ mod tests {
         testing::DummyFuture,
         GeneratorState,
     };
-    use std::{
+    use core::{
         cell::{Cell, RefCell},
         future::Future,
     };
+    use alloc::vec::Vec;
 
     async fn simple_producer(mut co: Co<i32>) -> &'static str {
         co.yield_(10).await;

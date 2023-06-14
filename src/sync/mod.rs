@@ -351,14 +351,18 @@ mod nightly_tests;
 mod tests {
     use crate::{
         sync::{Co, Gen},
-        testing::{DummyFuture, SlowFuture},
+        testing::DummyFuture,
         GeneratorState,
     };
+    #[cfg(feature = "futures03")]
+    use crate::testing::SlowFuture;
+    #[cfg(feature = "futures03")]
     use futures::executor::block_on;
-    use std::{
+    use core::{
         cell::{Cell, RefCell},
         future::Future,
     };
+    use alloc::vec::Vec;
 
     async fn simple_producer(mut co: Co<i32>) -> &'static str {
         co.yield_(10).await;
@@ -407,6 +411,7 @@ mod tests {
         assert_eq!(*resumes.borrow(), &["abc", "def"]);
     }
 
+    #[cfg(feature = "futures03")]
     #[test]
     fn async_resume() {
         async fn produce(mut co: Co<i32>) {

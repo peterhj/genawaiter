@@ -1,5 +1,6 @@
 use crate::rc::{Co, Gen};
-use std::{future::Future, pin::Pin};
+use core::{future::Future, pin::Pin};
+use alloc::boxed::Box;
 
 /// This is a type alias for generators which can be stored in a `'static`. It's
 /// only really needed to help the compiler's type inference along.
@@ -37,13 +38,15 @@ impl<Y, R, C> GenBoxed<Y, R, C> {
     }
 }
 
+#[cfg(feature = "std")]
 #[cfg(test)]
 mod tests {
     use crate::{
         ops::GeneratorState,
         rc::{Co, Gen, GenBoxed},
     };
-    use std::cell::{RefCell};
+    use core::cell::RefCell;
+    use std::thread_local;
 
     async fn odd_numbers_less_than_ten(mut co: Co<i32>) {
         for n in (1..).step_by(2).take_while(|&n| n < 10) {

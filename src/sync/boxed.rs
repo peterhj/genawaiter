@@ -1,5 +1,6 @@
 use crate::sync::{Co, Gen};
-use std::{future::Future, pin::Pin};
+use core::{future::Future, pin::Pin};
+use alloc::boxed::Box;
 
 /// This is a type alias for generators which can be stored in a `'static`. It's
 /// only really needed to help the compiler's type inference along.
@@ -43,7 +44,8 @@ mod tests {
         ops::GeneratorState,
         sync::{Co, Gen},
     };
-    use std::sync::{Arc, Mutex};
+    use alloc::sync::Arc;
+    use std::sync::Mutex;
 
     async fn odd_numbers_less_than_ten(mut co: Co<i32>) {
         for n in (1..).step_by(2).take_while(|&n| n < 10) {

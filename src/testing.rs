@@ -1,4 +1,4 @@
-use std::{
+use core::{
     future::Future,
     pin::Pin,
     task::{Context, Poll},
@@ -15,19 +15,19 @@ impl Future for DummyFuture {
 }
 
 /// A future that returns `Pending` a bunch of times before returning `Ready`.
-#[cfg(any(all(feature = "alloc", feature = "sync"), feature = "futures03"))]
+#[cfg(all(all(feature = "sync"), feature = "futures03"))]
 pub struct SlowFuture {
     countdown: i32,
 }
 
-#[cfg(any(all(feature = "alloc", feature = "sync"), feature = "futures03"))]
+#[cfg(all(all(feature = "sync"), feature = "futures03"))]
 impl SlowFuture {
     pub fn new() -> Self {
         Self { countdown: 10 }
     }
 }
 
-#[cfg(any(all(feature = "alloc", feature = "sync"), feature = "futures03"))]
+#[cfg(all(all(feature = "sync"), feature = "futures03"))]
 impl Future for SlowFuture {
     type Output = ();
 

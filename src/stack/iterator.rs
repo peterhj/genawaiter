@@ -1,5 +1,5 @@
 use crate::{ops::GeneratorState, stack::generator::Gen};
-use std::future::Future;
+use core::future::Future;
 
 impl<'s, Y, F: Future<Output = ()>> IntoIterator for Gen<'s, Y, (), F> {
     type Item = Y;
@@ -52,14 +52,19 @@ impl<'r, 's, Y, F: Future<Output = ()>> Iterator for MutIntoIter<'r, 's, Y, F> {
 
 #[cfg(test)]
 mod tests {
-    use crate::stack::{let_gen_using, Co, Gen, Shelf};
-    use std::iter::IntoIterator;
+    use crate::stack::{Co, Gen, Shelf};
+    #[cfg(feature = "macro")]
+    use crate::stack::let_gen_using;
+    use core::iter::IntoIterator;
+    #[cfg(feature = "alloc")]
+    use alloc::vec::Vec;
 
     async fn produce(mut co: Co<'_, i32>) {
         co.yield_(10).await;
         co.yield_(20).await;
     }
 
+    #[cfg(all(feature = "macro", feature = "alloc"))]
     #[test]
     fn let_gen_using_into_iter() {
         let_gen_using!(gen, produce);
@@ -68,6 +73,7 @@ mod tests {
         assert_eq!(items, [10, 20]);
     }
 
+    #[cfg(feature = "macro")]
     #[test]
     fn let_gen_using_for_loop() {
         let_gen_using!(gen, produce);
@@ -79,6 +85,7 @@ mod tests {
         assert_eq!(sum, 30);
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn shelf_generator_into_iter() {
         let mut shelf = Shelf::new();
