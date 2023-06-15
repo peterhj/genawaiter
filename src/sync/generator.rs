@@ -29,7 +29,7 @@ impl<Y, R, F: Future> Gen<Y, R, F> {
     /// [_See the module-level docs for examples._](.)
     pub fn new(producer: impl FnOnce(Co<Y, R>) -> F) -> Self {
         let airlock = Airlock::default();
-        let future = { Box::pin(producer(Co::new(airlock.clone()))) };
+        let future = { Box::pin((producer)(Co::new(airlock.clone()))) };
         Self { airlock, future }
     }
 

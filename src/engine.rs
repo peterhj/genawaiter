@@ -38,22 +38,16 @@ pub fn advance<Y, R, F: Future>(
                 Next::Empty | Next::Completed => unreachable!(),
                 Next::Yield(y) => GeneratorState::Yielded(y),
                 Next::Resume(_) => {
-                    #[cfg(debug_assertions)]
                     panic!(
                         "An async generator was resumed via a non-async method. For \
                          async generators, use `Stream` or `async_resume` instead of \
                          `Iterator` or `resume`.",
                     );
-
-                    #[cfg(not(debug_assertions))]
-                    panic!("misused async generator");
                 }
             }
         }
         Poll::Ready(value) => {
-            #[cfg(debug_assertions)]
             airlock.replace(Next::Completed);
-
             GeneratorState::Complete(value)
         }
     }
@@ -93,9 +87,7 @@ impl<'a, F: Future, A: Airlock> Future for Advance<'a, F, A> {
                 }
             }
             Poll::Ready(value) => {
-                #[cfg(debug_assertions)]
                 self.airlock.replace(Next::Completed);
-
                 Poll::Ready(GeneratorState::Complete(value))
             }
         }
@@ -129,7 +121,6 @@ impl<A: Airlock> Co<A> {
     ///
     /// [_See the module-level docs for examples._](.)
     pub fn yield_(&mut self, value: A::Yield) -> impl Future<Output = A::Resume> + '_ {
-        #[cfg(debug_assertions)]
         match self.airlock.peek() {
             Next::Yield(()) => {
                 panic!(
@@ -145,7 +136,6 @@ impl<A: Airlock> Co<A> {
             }
             Next::Empty | Next::Resume(()) => {}
         }
-
         self.airlock.replace(Next::Yield(value));
         Barrier {
             airlock: &self.airlock,

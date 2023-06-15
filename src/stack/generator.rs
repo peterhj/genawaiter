@@ -95,7 +95,7 @@ impl<'s, Y, R, F: Future> Gen<'s, Y, R, F> {
         let airlock = &shelf.airlock;
         // Safety: Initializes the future in-place using `ptr::write`, which is
         // the correct way to initialize a `MaybeUninit`
-        shelf.future.as_mut_ptr().write(producer(Co::new(airlock)));
+        shelf.future.as_mut_ptr().write((producer)(Co::new(airlock)));
         // Safety: The `MaybeUninit` is initialized by now, so its safe to create
         // a reference to the future itself
         // NB: can be replaced by `MaybeUninit::get_mut` once stabilized

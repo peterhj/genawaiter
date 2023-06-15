@@ -34,7 +34,7 @@ impl<Y, R, C> GenBoxed<Y, R, C> {
     where
         F: Future<Output = C> + Send + 'static,
     {
-        Self::new(|co| Box::pin(producer(co)))
+        Self::new(|co| Box::pin((producer)(co)))
     }
 }
 
