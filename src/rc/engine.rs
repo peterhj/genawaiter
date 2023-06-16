@@ -21,7 +21,7 @@ impl<Y, R> engine::Airlock for Airlock<Y, R> {
     type Resume = R;
 
     fn peek(&self) -> Next<(), ()> {
-        // Safety: `Rc` is `!Send + !Sync`, and control does not leave this function
+        // SAFETY: `Rc` is `!Send + !Sync`, and control does not leave this function
         // while the reference is taken, so concurrent access is not possible. The value
         // is not modified, so no shared references elsewhere can be invalidated.
         let inner = unsafe { &*self.0.as_ptr() };

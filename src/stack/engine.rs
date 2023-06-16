@@ -21,7 +21,7 @@ impl<'s, Y, R> engine::Airlock for &'s Airlock<Y, R> {
     type Resume = R;
 
     fn peek(&self) -> Next<(), ()> {
-        // Safety: This follows the safety rules above.
+        // SAFETY: This follows the safety rules above.
         let inner = unsafe { &*self.0.get() };
         inner.without_values()
     }
@@ -30,7 +30,7 @@ impl<'s, Y, R> engine::Airlock for &'s Airlock<Y, R> {
         &self,
         next: Next<Self::Yield, Self::Resume>,
     ) -> Next<Self::Yield, Self::Resume> {
-        // Safety: This follows the safety rules above.
+        // SAFETY: This follows the safety rules above.
         unsafe { ptr::replace(self.0.get(), next) }
     }
 }

@@ -24,7 +24,7 @@ impl<Y, R, F: Future> Shelf<Y, R, F> {
     pub fn new() -> Self {
         Self {
             airlock: Airlock::default(),
-            // Safety: The lifetime of the data is controlled by a `Gen`, which constructs
+            // SAFETY: The lifetime of the data is controlled by a `Gen`, which constructs
             // it in place, and holds a mutable reference right up until dropping it in
             // place. Thus, the data inside is pinned and can never be moved.
             future: MaybeUninit::uninit(),
@@ -93,14 +93,14 @@ impl<'s, Y, R, F: Future> Gen<'s, Y, R, F> {
         // By splitting the mutable `shelf` into a shared `airlock` and a unique
         // pinned `future` reference we ensure the aliasing rules are not violated.
         let airlock = &shelf.airlock;
-        // Safety: Initializes the future in-place using `ptr::write`, which is
+        // SAFETY: Initializes the future in-place using `ptr::write`, which is
         // the correct way to initialize a `MaybeUninit`
         shelf.future.as_mut_ptr().write((producer)(Co::new(airlock)));
-        // Safety: The `MaybeUninit` is initialized by now, so its safe to create
+        // SAFETY: The `MaybeUninit` is initialized by now, so its safe to create
         // a reference to the future itself
         // NB: can be replaced by `MaybeUninit::get_mut` once stabilized
         let init = &mut *shelf.future.as_mut_ptr();
-        // Safety: The `shelf` remains borrowed during the entire lifetime of
+        // SAFETY: The `shelf` remains borrowed during the entire lifetime of
         // the `Gen`and is hence pinned.
         Self {
             airlock,
@@ -126,7 +126,7 @@ impl<'s, Y, R, F: Future> Gen<'s, Y, R, F> {
 
 impl<'s, Y, R, F: Future> Drop for Gen<'s, Y, R, F> {
     fn drop(&mut self) {
-        // Safety: `future` itself is a `MaybeUninit`, which is guaranteed to be
+        // SAFETY: `future` itself is a `MaybeUninit`, which is guaranteed to be
         // initialized, because the only way to construct a `Gen` is with
         // `Gen::new`, which initializes it.
         //
@@ -174,7 +174,7 @@ impl<'s, Y, R, F: Future> Coroutine for Gen<'s, Y, R, F> {
         self: Pin<&mut Self>,
         arg: R,
     ) -> GeneratorState<Self::Yield, Self::Return> {
-        // Safety: `Gen::resume_with` does not move `self`.
+        // SAFETY: `Gen::resume_with` does not move `self`.
         let this = unsafe { self.get_unchecked_mut() };
         this.resume_with(arg)
     }

@@ -12,14 +12,13 @@ pub enum Next<Y, R> {
     Completed,
 }
 
-#[allow(clippy::use_self)]
 impl<Y, R> Next<Y, R> {
     pub fn without_values(&self) -> Next<(), ()> {
         match self {
-            Self::Empty => Next::Empty,
-            Self::Yield(_) => Next::Yield(()),
-            Self::Resume(_) => Next::Resume(()),
-            Self::Completed => Next::Completed,
+            &Next::Empty => Next::Empty,
+            &Next::Yield(_) => Next::Yield(()),
+            &Next::Resume(_) => Next::Resume(()),
+            &Next::Completed => Next::Completed,
         }
     }
 }
@@ -67,7 +66,7 @@ struct Advance<'a, F: Future, A: Airlock> {
 
 impl<'a, F: Future, A: Airlock> Advance<'a, F, A> {
     fn future_mut(self: Pin<&mut Self>) -> Pin<&mut F> {
-        // Safety: This is just projecting a pinned reference. Neither `self` nor
+        // SAFETY: This is just projecting a pinned reference. Neither `self` nor
         // `self.future` are moved.
         unsafe { self.map_unchecked_mut(|s| s.future.as_mut().get_unchecked_mut()) }
     }

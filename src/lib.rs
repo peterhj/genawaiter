@@ -263,13 +263,13 @@ resume argument type to `()`, but in a `Coroutine` it can be anything.
 #![warn(missing_docs, clippy::cargo, clippy::pedantic)]
 #![cfg_attr(feature = "strict", deny(warnings))]
 
+#[cfg(test)]
+extern crate self as genawaiter;
+
 #[cfg(feature = "alloc")]
 extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
-
-#[cfg(test)]
-extern crate self as genawaiter;
 
 pub use crate::ops::{Coroutine, Generator, GeneratorState};
 

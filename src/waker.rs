@@ -4,7 +4,7 @@ use core::{
 };
 
 pub fn create() -> Waker {
-    // Safety: The waker points to a vtable with functions that do nothing. Doing
+    // SAFETY: The waker points to a vtable with functions that do nothing. Doing
     // nothing is memory-safe.
     unsafe { Waker::from_raw(RAW_WAKER) }
 }
