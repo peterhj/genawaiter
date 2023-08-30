@@ -140,6 +140,32 @@ impl<A: Airlock> Co<A> {
             airlock: &self.airlock,
         }
     }
+
+    /// Returns a value from the generator.
+    ///
+    /// This consumes the `Co`, which is necessary for safe usage of,
+    /// e.g., `stack::Gen::new`.
+    pub fn return_<O>(self, final_value: O) -> Fin<O> {
+        Fin(final_value)
+    }
+}
+
+#[repr(transparent)]
+pub struct Fin<O = ()>(O);
+
+pub trait Fin_ {
+    type Output;
+
+    fn unwrap(self) -> Self::Output;
+}
+
+impl<O> Fin_ for Fin<O> {
+    type Output = O;
+
+    #[inline]
+    fn unwrap(self) -> O {
+        self.0
+    }
 }
 
 struct Barrier<'a, A: Airlock> {

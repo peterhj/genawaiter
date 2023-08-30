@@ -1,5 +1,5 @@
 use crate::{
-    engine::{advance, async_advance, Airlock as _, Next},
+    engine::{advance, async_advance, Airlock as _, Next, Fin_},
     ops::{Coroutine, GeneratorState},
     stack::engine::{Airlock, Co},
 };
@@ -47,7 +47,7 @@ pub struct Gen<'s, Y, R, F: Future> {
     future: Pin<&'s mut F>,
 }
 
-impl<'s, Y, R, F: Future> Gen<'s, Y, R, F> {
+impl<'s, Y, R, F: Future> Gen<'s, Y, R, F> where <F as Future>::Output: Fin_ {
     /// Creates a new generator from a function.
     ///
     /// The state of the generator is stored in `shelf`, which will be pinned in
@@ -86,13 +86,14 @@ impl<'s, Y, R, F: Future> Gen<'s, Y, R, F> {
     /// let mut shelf = Shelf::new();
     /// let gen = unsafe { Gen::new(&mut shelf, producer) };
     /// ```
-    pub unsafe fn new(
+    pub fn new(
         shelf: &'s mut Shelf<Y, R, F>,
         producer: impl FnOnce(Co<'s, Y, R>) -> F,
     ) -> Self {
         // By splitting the mutable `shelf` into a shared `airlock` and a unique
         // pinned `future` reference we ensure the aliasing rules are not violated.
         let airlock = &shelf.airlock;
+        unsafe {
         // SAFETY: Initializes the future in-place using `ptr::write`, which is
         // the correct way to initialize a `MaybeUninit`
         shelf.future.as_mut_ptr().write((producer)(Co::new(airlock)));
@@ -105,6 +106,7 @@ impl<'s, Y, R, F: Future> Gen<'s, Y, R, F> {
         Self {
             airlock,
             future: Pin::new_unchecked(init),
+        }
         }
     }
 
@@ -139,7 +141,7 @@ impl<'s, Y, R, F: Future> Drop for Gen<'s, Y, R, F> {
     }
 }
 
-impl<'s, Y, F: Future> Gen<'s, Y, (), F> {
+impl<'s, Y, F: Future> Gen<'s, Y, (), F> where <F as Future>::Output: Fin_ {
     /// Resumes execution of the generator.
     ///
     /// If the generator yields a value, `Yielded` is returned. Otherwise,
@@ -165,7 +167,7 @@ impl<'s, Y, F: Future> Gen<'s, Y, (), F> {
     }
 }
 
-impl<'s, Y, R, F: Future> Coroutine for Gen<'s, Y, R, F> {
+impl<'s, Y, R, F: Future> Coroutine for Gen<'s, Y, R, F> where <F as Future>::Output: Fin_ {
     type Yield = Y;
     type Resume = R;
     type Return = F::Output;
@@ -179,3 +181,34 @@ impl<'s, Y, R, F: Future> Coroutine for Gen<'s, Y, R, F> {
         this.resume_with(arg)
     }
 }
+
+/*#[cfg(test)]
+mod tests {
+    use crate::{
+        ops::GeneratorState,
+        stack::{Co, Gen, Shelf},
+    };
+
+    /// This test proves that `Gen::new` is actually unsafe.
+    #[test]
+    #[ignore = "compile-only test"]
+    fn unsafety() {
+        async fn shenanigans(co: Co<'_, i32>) -> Co<'_, i32> {
+            co
+        }
+
+        let mut shelf = Shelf::new();
+        let mut gen = unsafe { Gen::new(&mut shelf, shenanigans) };
+
+        // Get the `co` out of the generator (don't try this at home).
+        let mut escaped_co = match gen.resume() {
+            GeneratorState::Yielded(_) => panic!(),
+            GeneratorState::Complete(co) => co,
+        };
+        // Drop the generator. This drops the airlock (inside the state), but `co` still
+        // holds a reference to the airlock.
+        drop(gen);
+        // Now we're able to use an invalidated reference.
+        let _ = escaped_co.yield_(10);
+    }
+}*/

@@ -42,4 +42,4 @@ impl<'s, Y, R> engine::Airlock for &'s Airlock<Y, R> {
 /// theoretical you are feeling.
 ///
 /// [_See the module-level docs for examples._](.)
-pub type Co<'y, Y, R = ()> = engine::Co<&'y Airlock<Y, R>>;
+pub type Co<'s, Y, R = ()> = engine::Co<&'s Airlock<Y, R>>;
