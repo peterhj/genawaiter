@@ -153,7 +153,12 @@ impl<A: Airlock> Co<A> {
 #[repr(transparent)]
 pub struct Fin<O = ()>(O);
 
-pub trait Fin_ {
+mod hidden {
+    pub trait Seal_ {}
+    impl<O> Seal_ for super::Fin<O> {}
+}
+
+pub trait Fin_: hidden::Seal_ {
     type Output;
 
     fn unwrap(self) -> Self::Output;
