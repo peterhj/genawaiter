@@ -22,7 +22,7 @@ impl<'s, Y, F: Future<Output = Fin>> Iterator for IntoIter<'s, Y, F> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.generator.resume() {
             GeneratorState::Yielded(x) => Some(x),
-            GeneratorState::Complete(_) => None,
+            GeneratorState::Complete(()) => None,
         }
     }
 }
@@ -46,7 +46,7 @@ impl<'r, 's, Y, F: Future<Output = Fin>> Iterator for MutIntoIter<'r, 's, Y, F> 
     fn next(&mut self) -> Option<Self::Item> {
         match self.generator.resume() {
             GeneratorState::Yielded(x) => Some(x),
-            GeneratorState::Complete(_) => None,
+            GeneratorState::Complete(()) => None,
         }
     }
 }

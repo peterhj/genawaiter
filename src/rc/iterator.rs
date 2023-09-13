@@ -1,7 +1,8 @@
+use crate::engine::Fin;
 use crate::{ops::GeneratorState, rc::Gen};
 use core::future::Future;
 
-impl<Y, F: Future<Output = ()>> IntoIterator for Gen<Y, (), F> {
+impl<Y, F: Future<Output = Fin>> IntoIterator for Gen<Y, (), F> {
     type Item = Y;
     type IntoIter = IntoIter<Y, F>;
 
@@ -11,11 +12,11 @@ impl<Y, F: Future<Output = ()>> IntoIterator for Gen<Y, (), F> {
     }
 }
 
-pub struct IntoIter<Y, F: Future<Output = ()>> {
+pub struct IntoIter<Y, F: Future<Output = Fin>> {
     generator: Gen<Y, (), F>,
 }
 
-impl<Y, F: Future<Output = ()>> Iterator for IntoIter<Y, F> {
+impl<Y, F: Future<Output = Fin>> Iterator for IntoIter<Y, F> {
     type Item = Y;
 
     fn next(&mut self) -> Option<Self::Item> {

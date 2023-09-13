@@ -120,7 +120,7 @@ impl<'s, Y, R, F: Future> Gen<'s, Y, R, F> where <F as Future>::Output: Fin_ {
     /// `Completed` is returned.
     ///
     /// [_See the module-level docs for examples._](.)
-    pub fn resume_with(&mut self, arg: R) -> GeneratorState<Y, F::Output> {
+    pub fn resume_with(&mut self, arg: R) -> GeneratorState<Y, <<F as Future>::Output as Fin_>::Output> {
         self.airlock.replace(Next::Resume(arg));
         advance(self.future.as_mut(), &self.airlock)
     }
@@ -148,7 +148,7 @@ impl<'s, Y, F: Future> Gen<'s, Y, (), F> where <F as Future>::Output: Fin_ {
     /// `Completed` is returned.
     ///
     /// [_See the module-level docs for examples._](.)
-    pub fn resume(&mut self) -> GeneratorState<Y, F::Output> {
+    pub fn resume(&mut self) -> GeneratorState<Y, <<F as Future>::Output as Fin_>::Output> {
         self.resume_with(())
     }
 
@@ -161,7 +161,7 @@ impl<'s, Y, F: Future> Gen<'s, Y, (), F> where <F as Future>::Output: Fin_ {
     /// [_See the module-level docs for examples._](.)
     pub fn async_resume(
         &mut self,
-    ) -> impl Future<Output = GeneratorState<Y, F::Output>> + '_ {
+    ) -> impl Future<Output = GeneratorState<Y, <<F as Future>::Output as Fin_>::Output>> + '_ {
         self.airlock.replace(Next::Resume(()));
         async_advance(self.future.as_mut(), self.airlock)
     }
@@ -170,7 +170,7 @@ impl<'s, Y, F: Future> Gen<'s, Y, (), F> where <F as Future>::Output: Fin_ {
 impl<'s, Y, R, F: Future> Coroutine for Gen<'s, Y, R, F> where <F as Future>::Output: Fin_ {
     type Yield = Y;
     type Resume = R;
-    type Return = F::Output;
+    type Return = <<F as Future>::Output as Fin_>::Output;
 
     fn resume_with(
         self: Pin<&mut Self>,

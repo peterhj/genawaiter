@@ -1,5 +1,5 @@
 use crate::{
-    engine::{advance, async_advance, Airlock as _, Next},
+    engine::{advance, async_advance, Airlock as _, Next, Fin_},
     ops::{Coroutine, GeneratorState},
     sync::{engine::Airlock, Co},
 };
@@ -14,7 +14,7 @@ pub struct Gen<Y, R, F: Future> {
     future: Pin<Box<F>>,
 }
 
-impl<Y, R, F: Future> Gen<Y, R, F> {
+impl<Y, R, F: Future> Gen<Y, R, F> where <F as Future>::Output: Fin_ {
     /// Creates a new generator from a function.
     ///
     /// The function accepts a [`Co`] object, and returns a future. Every time
@@ -43,20 +43,20 @@ impl<Y, R, F: Future> Gen<Y, R, F> {
     /// `Completed` is returned.
     ///
     /// [_See the module-level docs for examples._](.)
-    pub fn resume_with(&mut self, arg: R) -> GeneratorState<Y, F::Output> {
+    pub fn resume_with(&mut self, arg: R) -> GeneratorState<Y, <<F as Future>::Output as Fin_>::Output> {
         self.airlock.replace(Next::Resume(arg));
         advance(self.future.as_mut(), &self.airlock)
     }
 }
 
-impl<Y, F: Future> Gen<Y, (), F> {
+impl<Y, F: Future> Gen<Y, (), F> where <F as Future>::Output: Fin_ {
     /// Resumes execution of the generator.
     ///
     /// If the generator yields a value, `Yielded` is returned. Otherwise,
     /// `Completed` is returned.
     ///
     /// [_See the module-level docs for examples._](.)
-    pub fn resume(&mut self) -> GeneratorState<Y, F::Output> {
+    pub fn resume(&mut self) -> GeneratorState<Y, <<F as Future>::Output as Fin_>::Output> {
         self.resume_with(())
     }
 
@@ -69,16 +69,16 @@ impl<Y, F: Future> Gen<Y, (), F> {
     /// [_See the module-level docs for examples._](.)
     pub fn async_resume(
         &mut self,
-    ) -> impl Future<Output = GeneratorState<Y, F::Output>> + '_ {
+    ) -> impl Future<Output = GeneratorState<Y, <<F as Future>::Output as Fin_>::Output>> + '_ {
         self.airlock.replace(Next::Resume(()));
         async_advance(self.future.as_mut(), self.airlock.clone())
     }
 }
 
-impl<Y, R, F: Future> Coroutine for Gen<Y, R, F> {
+impl<Y, R, F: Future> Coroutine for Gen<Y, R, F> where <F as Future>::Output: Fin_ {
     type Yield = Y;
     type Resume = R;
-    type Return = F::Output;
+    type Return = <<F as Future>::Output as Fin_>::Output;
 
     fn resume_with(
         mut self: Pin<&mut Self>,

@@ -1,3 +1,4 @@
+use crate::engine::Fin_;
 use crate::rc::{Co, Gen};
 use core::{future::Future, pin::Pin};
 use alloc::boxed::Box;
@@ -33,6 +34,7 @@ impl<Y, R, C> GenBoxed<Y, R, C> {
     pub fn new_boxed<F>(producer: impl FnOnce(Co<Y, R>) -> F) -> Self
     where
         F: Future<Output = C> + 'static,
+        C: Fin_,
     {
         Self::new(|co| Box::pin((producer)(co)))
     }

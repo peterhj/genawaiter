@@ -26,7 +26,7 @@ impl<Y, R> Next<Y, R> {
 pub fn advance<Y, R, F: Future>(
     future: Pin<&mut F>,
     airlock: &impl Airlock<Yield = Y, Resume = R>,
-) -> GeneratorState<Y, F::Output> {
+) -> GeneratorState<Y, <<F as Future>::Output as Fin_>::Output> where <F as Future>::Output: Fin_ {
     let waker = waker::create();
     let mut cx = Context::from_waker(&waker);
 
@@ -47,7 +47,7 @@ pub fn advance<Y, R, F: Future>(
         }
         Poll::Ready(value) => {
             airlock.replace(Next::Completed);
-            GeneratorState::Complete(value)
+            GeneratorState::Complete(value.unwrap())
         }
     }
 }
@@ -55,7 +55,7 @@ pub fn advance<Y, R, F: Future>(
 pub fn async_advance<'a, Y, R, F: Future>(
     future: Pin<&'a mut F>,
     airlock: impl Airlock<Yield = Y, Resume = R> + 'a,
-) -> impl Future<Output = GeneratorState<Y, F::Output>> + 'a {
+) -> impl Future<Output = GeneratorState<Y, <<F as Future>::Output as Fin_>::Output>> + 'a where <F as Future>::Output: Fin_ {
     Advance { future, airlock }
 }
 
@@ -72,8 +72,8 @@ impl<'a, F: Future, A: Airlock> Advance<'a, F, A> {
     }
 }
 
-impl<'a, F: Future, A: Airlock> Future for Advance<'a, F, A> {
-    type Output = GeneratorState<A::Yield, F::Output>;
+impl<'a, F: Future, A: Airlock> Future for Advance<'a, F, A> where <F as Future>::Output: Fin_ {
+    type Output = GeneratorState<A::Yield, <<F as Future>::Output as Fin_>::Output>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         match self.as_mut().future_mut().poll(cx) {
@@ -87,7 +87,7 @@ impl<'a, F: Future, A: Airlock> Future for Advance<'a, F, A> {
             }
             Poll::Ready(value) => {
                 self.airlock.replace(Next::Completed);
-                Poll::Ready(GeneratorState::Complete(value))
+                Poll::Ready(GeneratorState::Complete(value.unwrap()))
             }
         }
     }
@@ -150,6 +150,28 @@ impl<A: Airlock> Co<A> {
     }
 }
 
+struct Barrier<'a, A: Airlock> {
+    airlock: &'a A,
+}
+
+impl<'a, A: Airlock> Future for Barrier<'a, A> {
+    type Output = A::Resume;
+
+    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
+        match self.airlock.peek() {
+            Next::Yield(_) => Poll::Pending,
+            Next::Resume(_) => {
+                let next = self.airlock.replace(Next::Empty);
+                match next {
+                    Next::Resume(arg) => Poll::Ready(arg),
+                    Next::Empty | Next::Yield(_) | Next::Completed => unreachable!(),
+                }
+            }
+            Next::Empty | Next::Completed => unreachable!(),
+        }
+    }
+}
+
 #[repr(transparent)]
 pub struct Fin<O = ()>(O);
 
@@ -170,27 +192,5 @@ impl<O> Fin_ for Fin<O> {
     #[inline]
     fn unwrap(self) -> O {
         self.0
-    }
-}
-
-struct Barrier<'a, A: Airlock> {
-    airlock: &'a A,
-}
-
-impl<'a, A: Airlock> Future for Barrier<'a, A> {
-    type Output = A::Resume;
-
-    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
-        match self.airlock.peek() {
-            Next::Yield(_) => Poll::Pending,
-            Next::Resume(_) => {
-                let next = self.airlock.replace(Next::Empty);
-                match next {
-                    Next::Resume(arg) => Poll::Ready(arg),
-                    Next::Empty | Next::Yield(_) | Next::Completed => unreachable!(),
-                }
-            }
-            Next::Empty | Next::Completed => unreachable!(),
-        }
     }
 }
